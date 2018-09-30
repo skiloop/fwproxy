@@ -1,6 +1,9 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/skiloop/fwproxy)](https://goreportcard.com/report/github.com/skiloop/fwproxy)
+
+
 fwproxy
 ====================================================
-a proxy in go mapping other proxies to local network interface
+a proxy in go using [google martian](https://github.com/google/martian) mapping other proxies to local network interface
 
 ### Usage
 
