@@ -1,20 +1,20 @@
 package main
 
 import (
-	"flag"
-	"os"
-	"strings"
-	"errors"
-	"strconv"
-	"fmt"
-	"os/signal"
-	"log"
-	"github.com/google/martian"
-	"net"
-	"net/url"
-	"net/http"
-	"time"
 	"crypto/tls"
+	"errors"
+	"flag"
+	"fmt"
+	"github.com/google/martian"
+	"log"
+	"net"
+	"net/http"
+	"net/url"
+	"os"
+	"os/signal"
+	"strconv"
+	"strings"
+	"time"
 )
 
 var (
