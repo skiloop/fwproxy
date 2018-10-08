@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/google/martian"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -15,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/google/martian/log"
 )
 
 var (
@@ -26,6 +26,10 @@ type Router struct {
 	host string
 	url  string
 }
+
+var (
+	logLevel = flag.Int("l", 0, "log level")
+)
 
 func createProxy(s string) (p *Router, err error) {
 	params := strings.SplitN(s, ":", 3)
@@ -42,12 +46,14 @@ func createProxy(s string) (p *Router, err error) {
 func serveProxy(r *Router) {
 	l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", r.host, r.port))
 	if err != nil {
-		log.Fatal(err)
+		log.Errorf("%v", err)
+		return
 	}
 	m := martian.NewProxy()
 	u, err := url.Parse(r.url)
 	if err != nil {
-		log.Fatal(err)
+		log.Errorf("%v", err)
+		return
 	}
 	tr := &http.Transport{
 		Dial: (&net.Dialer{
@@ -61,16 +67,18 @@ func serveProxy(r *Router) {
 			InsecureSkipVerify: *skipTLSVerify,
 		},
 	}
+	m.SetDownstreamProxy(u)
 	m.SetRoundTripper(tr)
 	m.Serve(l)
 }
 func main() {
 	flag.Parse()
+	log.SetLevel(*logLevel)
 	if flag.NArg() == 0 {
 		flag.Usage()
 		os.Exit(1)
 	}
-
+	log.Debugf("fwproxy: log level: %d", log.GetLevel())
 	routers := make([]Router, 0)
 	for idx := range flag.Args() {
 		if p, err := createProxy(flag.Arg(idx)); err == nil {
@@ -78,7 +86,7 @@ func main() {
 		}
 	}
 	if len(routers) != 0 {
-		fmt.Printf("%d proxy servers\n", len(routers))
+		fmt.Printf("fwproxy: %d proxy servers\n", len(routers))
 		for idx := range routers {
 			go serveProxy(&routers[idx])
 		}
@@ -87,8 +95,8 @@ func main() {
 		signal.Notify(sigc, os.Interrupt, os.Kill)
 
 		<-sigc
-		log.Println("shutting down")
+		log.Infof("fwproxy: shutting down")
 	} else {
-		fmt.Println("no routers")
+		log.Infof("fwproxy: no routers")
 	}
 }
